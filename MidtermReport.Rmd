@@ -1,0 +1,126 @@
+---
+title: "Midterm Report"
+author: "Anna Koblitz"
+date: "4/1/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+## Milwaukee Bucks Shot Charts, 2012-2021
+
+```{r message=FALSE, warning=FALSE, include = FALSE}
+devtools::install_github("abresler/nbastatR")
+
+library(nbastatR)
+library(tidyverse)
+library(ggplot2)
+library(BasketballAnalyzeR)
+library(gganimate)
+library(gifski)
+
+Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 2)
+
+shots2012 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2012)
+shots2013 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2013)
+shots2014 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2014)
+shots2015 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2015)
+shots2016 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2016)
+shots2017 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2017)
+shots2018 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2018)
+shots2019 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2019)
+shots2020 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2020)
+shots2021 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2021)
+
+dfList <- list(shots2012, shots2013, shots2014, shots2015, shots2016, shots2017, shots2018, shots2019, shots2020, shots2021)
+shots <- dfList %>% reduce(full_join)
+
+shots$locationX <- shots$locationX / 10
+shots$locationY <- shots$locationY / 10
+shots$locationY <- shots$locationY - 42.5
+
+```
+
+```{r, echo = FALSE}
+plot <- ggplot(shots, aes(locationX, locationY))
+animatePlot <- plot + 
+   geom_point(aes(color = isShotMade), alpha = .3) + 
+   scale_color_manual(values = c("black", "darkgreen"), aes(fill = "Is Shot Made?")) + 
+   labs(x = "", y = "", title = "Milwaukee Bucks Shots, Year: {frame_time}") +
+   scale_x_discrete(labels = NULL) +
+   scale_y_discrete(labels = NULL) +
+   coord_cartesian(ylim = c(-50, 0)) +
+   transition_time(yearSeason)
+courtPlot <- drawNBAcourt(animatePlot, size = 1, full = FALSE)
+
+animate(courtPlot, nframes = 10, duration = 5)
+```
+
+## Findings
+
+
+* Majority of shots are taken either behind the three point line or near the hoop
+
+* As time goes on, more shots seem to be taken behind the three point line than anywhere else
+
+* Of the shots that were made, they were most concentrated near the hoop
+
+
+## Further Readings
+
+
+* Looking at the graph, we can see that the areas that have the most points are darker in color, as the points are overlapping. Throughout the years, the three point line zone and the zone around the hoop tend to be the darkest on the graph. Even during the years that the graph appears to be lighter in color, meaning the points, and therefore shots, are more spread out, the three point line and hoop are still the most concentrated areas.
+
+* Focusing on the earlier years included in the plot, the hoop seems to be the area in which most shots are taken. This can be seen as it appears to include more points than the other zones on the court. As time goes on, we can see a shift in the points from the hoop to the three point line. This shift is most obvious when the plot switches from 2021 back to 2012. The most obvious points on the graph switch from being by the three point line to being around the hoop.
+
+* This graph is color coded by whether a shot was made or not, with the green representing a shot made and black representing a missed shot. If we are to look at just the green points, we can see that the most concentrated zone for shots made throughout all the years is the hoop. As the years get closer to 2021, we can also see more green points being focused at the three point line above the break. This coincides with our findings above that as the years go on, more shots in general are being taken at the three point line. This may also be why there are more shots being made by the hoop, as there are the most shots being taken in that zone.
+
+
+## Above and Beyond
+
+
+```{r}
+giannisShots2014 <- shots2014 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2015 <- shots2015 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2016 <- shots2016 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2017 <- shots2017 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2018 <- shots2018 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2019 <- shots2019 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2020 <- shots2020 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2021 <- shots2021 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+
+dfList2 <- list(giannisShots2014, giannisShots2015, giannisShots2016, giannisShots2017, giannisShots2018, giannisShots2019, giannisShots2020, giannisShots2021)
+giannisShots <- dfList2 %>% reduce(full_join)
+
+giannisShots$locationX <- giannisShots$locationX / 10
+giannisShots$locationY <- giannisShots$locationY / 10
+giannisShots$locationY <- giannisShots$locationY - 42.5
+
+plot2 <- ggplot(giannisShots, aes(locationX, locationY))
+animatePlot2 <- plot2 + 
+   geom_point(aes(color = zoneBasic, shape = isShotMade), alpha = .7, size = 2) + 
+   scale_color_manual(values = c("red", "darkorange", "gold", "green", "royalblue", "purple", "hotpink"), aes(fill = "Zone")) +
+   scale_shape_manual(values = c(4, 19), aes(fill = "Is Shot Made?")) +
+   labs(x = "", y = "", title = "Giannis Antetokounmpo Shots, Year: {frame_time}") +
+   scale_x_discrete(labels = NULL) +
+   scale_y_discrete(labels = NULL) +
+   coord_cartesian(ylim = c(-50, 0)) +
+   transition_time(yearSeason)
+courtPlot2 <- drawNBAcourt(animatePlot2, size = 1, full = FALSE)
+
+animate(courtPlot2, nframes = 8, duration = 5)
+```
+
+## Description
+
+For my second graph, I decided to focus on one player, Giannis Antetokounmpo, instead of the entire Milwaukee Bucks team. I also chose to incorporate both shapes and color in order to show the zones that the shots were taken from, as well as whether the shot was made or not. This graph includes shot information for Giannis' time with the Milwaukee Bucks, which includes the years 2014 through 2021. Similar to the previous shot chart, we can see that as the years go on the zone in red, which is the three point line above the break, grows and becomes more concentrated with points. The restricted area around the hoop also has an increase in shots and shots made from Giannis' initial years with the Bucks.
