@@ -1,0 +1,119 @@
+---
+title: "Midterm Code"
+author: "Anna Koblitz"
+date: "4/1/2022"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+## Milwaukee Bucks Shot Charts, 2012-2021
+
+```{r}
+#install nbastatR package
+devtools::install_github("abresler/nbastatR")
+
+#load necessary packages
+library(nbastatR)
+library(tidyverse)
+library(ggplot2)
+library(BasketballAnalyzeR)
+library(gganimate)
+library(gifski)
+
+Sys.setenv("VROOM_CONNECTION_SIZE" = 131072 * 2)
+
+#create data frames containing the shot information for the Bucks for 2012-2021
+shots2012 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2012)
+shots2013 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2013)
+shots2014 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2014)
+shots2015 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2015)
+shots2016 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2016)
+shots2017 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2017)
+shots2018 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2018)
+shots2019 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2019)
+shots2020 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2020)
+shots2021 <- teams_shots(teams = "Milwaukee Bucks", seasons = 2021)
+
+#combine all the years into one large data frame
+dfList <- list(shots2012, shots2013, shots2014, shots2015, shots2016, shots2017, shots2018, shots2019, shots2020, shots2021)
+shots <- dfList %>% reduce(full_join)
+
+#adjust coordinates to the dimensions of an actual NBA court in order to plot the points in the correct spot on the court
+shots$locationX <- shots$locationX / 10
+shots$locationY <- shots$locationY / 10
+shots$locationY <- shots$locationY - 42.5
+
+#create ggplot
+#add color to see whether a shot was made, adjust opacity to see overlapping points, manually select colors and change legend title, edit labels, remove graph lines, add transition by year
+plot <- ggplot(shots, aes(locationX, locationY))
+animatePlot <- plot + 
+   geom_point(aes(color = isShotMade), alpha = .3) + 
+   scale_color_manual(values = c("black", "darkgreen"), aes(fill = "Is Shot Made?")) + 
+   labs(x = "", y = "", title = "Milwaukee Bucks Shots, Year: {frame_time}") +
+   scale_x_discrete(labels = NULL) +
+   scale_y_discrete(labels = NULL) +
+   coord_cartesian(ylim = c(-50, 0)) +
+   transition_time(yearSeason)
+
+#add the court image onto the plot
+courtPlot <- drawNBAcourt(animatePlot, size = 1, full = FALSE)
+
+#animate plot, adjust number of frames and duration time
+animate(courtPlot, nframes = 10, duration = 5)
+```
+
+
+## Giannis Antetokounmpo Shots, 2014-2021
+
+```{r}
+#create data frames containing shot information from each year and filtering to only include Giannis' shots
+#only use years 2014-2021 as 2014 was Giannis' first season with the Bucks
+giannisShots2014 <- shots2014 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2015 <- shots2015 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2016 <- shots2016 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2017 <- shots2017 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2018 <- shots2018 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2019 <- shots2019 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2020 <- shots2020 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+giannisShots2021 <- shots2021 %>%
+   filter(namePlayer == "Giannis Antetokounmpo")
+
+#combine all years into one large data frame
+dfList2 <- list(giannisShots2014, giannisShots2015, giannisShots2016, giannisShots2017, giannisShots2018, giannisShots2019, giannisShots2020, giannisShots2021)
+giannisShots <- dfList2 %>% reduce(full_join)
+
+#adjust coordinates to the dimensions of an actual NBA court in order to plot the points in the correct spot on the court
+giannisShots$locationX <- giannisShots$locationX / 10
+giannisShots$locationY <- giannisShots$locationY / 10
+giannisShots$locationY <- giannisShots$locationY - 42.5
+
+#create ggplot
+#add color to see zones, add shapes to see whether a shot was made, adjust opacity to see overlapping points, increase size of points, manually select colors and change legend title, manually select shapes and change legend title, edit labels, remove graph lines, add transition by year
+plot2 <- ggplot(giannisShots, aes(locationX, locationY))
+animatePlot2 <- plot2 + 
+   geom_point(aes(color = zoneBasic, shape = isShotMade), alpha = .7, size = 2) + 
+   scale_color_manual(values = c("red", "darkorange", "gold", "green", "royalblue", "purple", "hotpink"), aes(fill = "Zone")) +
+   scale_shape_manual(values = c(4, 19), aes(fill = "Is Shot Made?")) +
+   labs(x = "", y = "", title = "Giannis Antetokounmpo Shots, Year: {frame_time}") +
+   scale_x_discrete(labels = NULL) +
+   scale_y_discrete(labels = NULL) +
+   coord_cartesian(ylim = c(-50, 0)) +
+   transition_time(yearSeason)
+
+#add the court image onto the plot
+courtPlot2 <- drawNBAcourt(animatePlot2, size = 1, full = FALSE)
+
+#animate plot, adjust number of frames and duration time
+animate(courtPlot2, nframes = 8, duration = 5)
+```
+
